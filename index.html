@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor - Client Side</title>
+    <link rel="stylesheet" href="public/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <!-- Language modes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+    <!-- JSON linting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/lint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/json-lint.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/lint.min.css">
+    <!-- Markdown preview -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+</head>
+<body>
+    <div class="editor-container">
+        <div class="toolbar">
+            <button id="saveBtn" class="save-button">Save File</button>
+            <input type="text" id="filename" placeholder="filename.js" class="filename-input">
+            <select id="languageSelect" class="language-select">
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="markdown">Markdown</option>
+                <option value="application/json">JSON</option>
+                <option value="text/html">HTML</option>
+                <option value="css">CSS</option>
+            </select>
+            <button id="previewBtn" class="preview-button" style="display: none;">Toggle Preview</button>
+            <input type="file" id="fileInput" accept=".js,.py,.md,.json,.html,.css,.txt" style="display: none;" multiple>
+            <button id="openFileBtn" class="open-file-button">Open Files</button>
+            <button id="openFolderBtn" class="open-folder-button">Open Folder</button>
+            <button id="toggleSidebarBtn" class="sidebar-toggle">📁</button>
+            <div class="status" id="status"></div>
+        </div>
+        <div class="tab-bar" id="tabBar" style="display: none;">
+            <!-- Tabs will be dynamically added here -->
+        </div>
+        <div class="main-content">
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h3>Explorer</h3>
+                    <div class="sidebar-actions">
+                        <button id="createFileBtn" class="action-btn" title="New File">📄</button>
+                        <button id="createFolderBtn" class="action-btn" title="New Folder">📁</button>
+                        <button id="refreshFilesBtn" class="refresh-btn" title="Refresh">🔄</button>
+                    </div>
+                </div>
+                <div class="file-explorer" id="fileExplorer">
+                    <div class="no-folder-message">
+                        <p>No folder opened</p>
+                        <button id="openFolderBtnSidebar" class="open-folder-button">Open Folder</button>
+                    </div>
+                </div>
+            </div>
+            <div class="editor-wrapper">
+                <div id="editor" class="editor">
+                    <textarea id="code-textarea">// Welcome to the Client-Side Code Editor!
+// This editor works entirely in your browser
+
+function greet(name) {
+    console.log(`Hello, ${name}!`);
+    return `Welcome to the code editor, ${name}`;
+}
+
+// Try editing this code
+const message = greet('Developer');
+console.log(message);
+
+// Features:
+// - Multiple language support
+// - Syntax highlighting
+// - Auto language detection
+// - JSON linting
+// - Markdown preview
+// - Multi-tab interface
+// - File operations (browser dependent)
+// - No backend required!
+
+// Browser Support:
+// - Chrome/Edge: Full file system access
+// - Firefox/Safari: File upload/download mode</textarea>
+            </div>
+            <div id="preview" class="preview" style="display: none;">
+                <div class="preview-content"></div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script src="public/client-fs.js"></script>
+</body>
+</html>
