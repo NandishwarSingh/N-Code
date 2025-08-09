@@ -19,6 +19,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/lint.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/json-lint.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/lint.min.css">
+    <!-- CodeMirror Search Addons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/search.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.css">
+    <!-- CodeMirror Hint (Autocompletion) Addons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/javascript-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/python-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/xml-hint.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+    <!-- CodeMirror Keymaps -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/keymap/sublime.min.js"></script>
     <!-- Markdown preview -->
     <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
 </head>
@@ -41,6 +56,7 @@
             <input type="file" id="fileInput" accept=".js,.py,.md,.json,.html,.css,.txt" style="display: none;" multiple>
             <button id="openFileBtn" class="open-file-button">Open Files</button>
             <button id="openFolderBtn" class="open-folder-button">Open Folder</button>
+            <button id="searchBtn" class="toolbar-action-button" title="Search">Search</button>
             <button id="toggleSidebarBtn" class="sidebar-toggle">📁</button>
             <div class="status" id="status"></div>
         </div>

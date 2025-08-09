@@ -261,6 +261,25 @@ const languageConfigs = {
     'css': { mode: 'css', ext: ['.css'], sample: '/* CSS */\nbody {\n    font-family: Arial, sans-serif;\n    background-color: #f0f0f0;\n}' }
 };
 
+function getLanguageHint(mode) {
+    switch (mode) {
+        case 'javascript':
+            return CodeMirror.hint.javascript;
+        case 'python':
+            return CodeMirror.hint.python;
+        case 'htmlmixed':
+            return CodeMirror.hint.html;
+        case 'css':
+            return CodeMirror.hint.css;
+        case 'xml': // For HTML/XML modes
+            return CodeMirror.hint.xml;
+        case 'application/json': // JSON mode, but no specific hint for it, use javascript for now
+            return CodeMirror.hint.javascript;
+        default:
+            return null;
+    }
+}
+
 try {
     const initialConfig = {
         lineNumbers: true,
@@ -271,7 +290,12 @@ try {
         autoCloseBrackets: true,
         matchBrackets: true,
         foldGutter: true,
-        gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter']
+        gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+        // Autocompletion
+        hintOptions: {hint: CodeMirror.hint.javascript, completeOnEnter: false, completeOnTab: true},
+        // Keymap
+        keyMap: 'sublime',
+        extraKeys: {"Tab": "autocomplete"}
     };
     
     editor = CodeMirror.fromTextArea(document.getElementById('code-textarea'), initialConfig);
@@ -314,6 +338,8 @@ const fileExplorer = document.getElementById('fileExplorer');
 const refreshFilesBtn = document.getElementById('refreshFilesBtn');
 const createFileBtn = document.getElementById('createFileBtn');
 const createFolderBtn = document.getElementById('createFolderBtn');
+
+const searchBtn = document.getElementById('searchBtn');
 
 const undoBtn = document.getElementById('undoBtn');
 const redoBtn = document.getElementById('redoBtn');
@@ -556,6 +582,9 @@ function changeLanguage(language) {
             editor.setOption('lint', options.lint);
             editor.setOption('gutters', options.gutters);
         }
+
+        // Update hint options dynamically
+        editor.setOption('hintOptions', { hint: getLanguageHint(config.mode) });
     }
     
     // Show/hide preview button for markdown
@@ -1210,6 +1239,12 @@ redoBtn.addEventListener('click', () => {
     }
 });
 
+searchBtn.addEventListener('click', () => {
+    if (editor) {
+        CodeMirror.commands.findPersistent(editor);
+    }
+});
+
 // Hide context menu on click outside
 document.addEventListener('click', hideContextMenu);
 
@@ -1327,6 +1362,31 @@ if (editor) {
         if (isPreviewMode && languageSelect.value === 'markdown') {
             clearTimeout(window.previewTimeout);
             window.previewTimeout = setTimeout(updateMarkdownPreview, 300);
+        }
+    });
+
+    // Auto-completion on typing
+    editor.on('inputRead', (cm, change) => {
+        if (change.text.length === 1 && /[a-zA-Z0-9._(]/.test(change.text[0])) {
+            CodeMirror.commands.autocomplete(cm, null, { completeSingle: false });
+        }
+    });
+
+    // Auto-completion on cursor activity (after a short delay)
+    let autoCompletionTimer;
+    editor.on('cursorActivity', (cm) => {
+        clearTimeout(autoCompletionTimer);
+        autoCompletionTimer = setTimeout(() => {
+            if (cm.somethingSelected() || cm.getOption("readOnly")) return;
+            CodeMirror.commands.autocomplete(cm, null, { completeSingle: false });
+        }, 150); // Adjust delay as needed
+    });
+
+    // Prevent Enter from confirming autocompletion when popup is active
+    editor.on('keydown', (cm, event) => {
+        if (event.key === 'Enter' && cm.state.completionActive) {
+            event.preventDefault(); // Prevent default Enter behavior
+            cm.replaceSelection("\n"); // Insert a newline
         }
     });
 } else {
