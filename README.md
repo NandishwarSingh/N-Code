@@ -1,42 +1,138 @@
 # N-Code Editor
 
-N-Code is a modern, client-side code editor that runs entirely in your browser. It provides a clean and intuitive interface for editing code, with support for multiple languages, syntax highlighting, and file system integration.
+N-Code is a modern, feature-rich, client-side code editor that runs entirely in your browser. It provides a clean, intuitive, and powerful environment for editing code, with support for multiple languages, syntax highlighting, and direct file system integration. This editor is designed for developers who need a quick and efficient way to work with local files without the need for a heavy IDE.
 
-## Features
+## Core Features in Detail
 
-- **Client-Side**: No backend required. The editor works completely within your browser.
-- **File System Access**: Open, edit, and save files directly to your local file system (requires a supported browser like Chrome or Edge).
-- **Multi-Language Support**: Syntax highlighting for various languages including JavaScript, Python, HTML, CSS, and Markdown.
-- **Markdown Preview**: Real-time preview for Markdown files.
-- **Tabbed Interface**: Open and manage multiple files in tabs.
-- **File Explorer**: Browse and manage files and folders in a sidebar.
-- **Dark Theme**: A comfortable dark theme for coding.
-- **Responsive Design**: Usable on both desktop and mobile devices.
+- **Client-Side Operation**: N-Code operates completely within your browser. There is no backend server required, which means you can use it offline. All your files and settings are handled locally.
 
-## How to Use
+- **Direct File System Access**: Leveraging the File System Access API, N-Code allows you to open, edit, and save files and folders directly on your local machine. This provides a seamless workflow similar to a desktop application (requires a supported browser like Chrome or Edge).
 
-1. **Open the Editor**: Simply open the `index.html` file in your web browser.
-2. **Open Files/Folders**:
-   - Click the "Open Folder" button to open a directory from your local file system.
-   - Click the "Open Files" button to open one or more files.
-3. **Editing**:
-   - Click on a file in the explorer to open it in a new tab.
-   - Edit the code in the editor.
-   - Your changes are auto-saved to the browser's local storage.
-4. **Saving**:
-   - Click the "Save File" button to save the changes to your local file.
-   - Use `Ctrl+S` as a keyboard shortcut to save.
+- **Multi-Language Support**: The editor includes syntax highlighting for a variety of popular languages, including:
+  - JavaScript
+  - Python
+  - HTML
+  - CSS
+  - Markdown
+  - JSON
 
-## Technologies Used
+- **Real-time Markdown Preview**: When editing Markdown files, you can toggle a live preview panel to see the rendered output as you type.
 
-- **HTML5, CSS3, JavaScript (ES6)**
-- **CodeMirror**: The code editor component.
-- **Marked**: A Markdown parser for the preview feature.
-- **File System Access API**: For direct interaction with the local file system.
+- **Tabbed Interface**: Manage multiple files efficiently with a familiar tabbed interface. Each tab shows the filename and indicates if there are unsaved changes.
 
-## Screenshots
+- **File Explorer**: A sidebar provides a tree view of your opened folder, allowing you to browse, open, create, rename, and delete files and folders.
 
-*(Add screenshots of the editor in action here)*
+- **Dark Theme**: A visually appealing dark theme is used to reduce eye strain and provide a pleasant coding experience.
+
+- **Responsive Design**: The editor is designed to be usable on a range of devices, from desktops to tablets and mobiles.
+
+## Getting Started
+
+To get started with N-Code, follow these simple steps:
+
+1. **Download the code**:
+   - Clone the repository: `git clone https://github.com/NandishwarSingh/N-Code.git`
+   - Or download the ZIP file and extract it.
+
+2. **Open the Editor**:
+   - Navigate to the project directory.
+   - Open the `index.html` file in a modern web browser (Chrome or Edge is recommended for full functionality).
+
+That's it! You are now ready to use the N-Code editor.
+
+## User Guide
+
+This guide explains the various components of the N-Code editor.
+
+### The Toolbar
+
+The toolbar at the top of the editor provides access to the main functionalities:
+
+- **Save File**: Saves the content of the active tab to your local file system. If the file is new, it will prompt you to choose a location.
+- **Filename Input**: Displays the name of the current file. You can also rename the file by changing the name here and saving.
+- **Language Selection**: A dropdown menu to manually select the language for syntax highlighting.
+- **Toggle Preview**: When editing a Markdown file, this button appears to show or hide the live preview panel.
+- **Open Files**: Allows you to open one or more files from your local machine.
+- **Open Folder**: Opens a directory from your local file system and displays it in the file explorer.
+- **Toggle Sidebar**: Shows or hides the file explorer sidebar.
+
+### The Sidebar (File Explorer)
+
+The sidebar on the left gives you a view of your project's file structure:
+
+- **File Tree**: Displays the files and folders of the directory you have opened.
+- **Actions**: You can perform actions by right-clicking on a file or folder:
+  - **New File**: Creates a new file in the selected directory.
+  - **New Folder**: Creates a new folder in the selected directory.
+  - **Rename**: Renames the selected file or folder.
+  - **Delete**: Deletes the selected file or folder (with a confirmation prompt).
+
+### The Editor
+
+The central part of the interface is the code editor, powered by CodeMirror. It offers:
+
+- **Syntax Highlighting**: Code is colored based on the selected language to improve readability.
+- **Line Numbers**: Gutter with line numbers for easy navigation.
+- **Code Folding**: Collapse blocks of code to focus on specific sections.
+- **Auto-closing Brackets**: Automatically closes brackets and quotes.
+
+### The Tab Bar
+
+Above the editor, the tab bar displays all the files you have open:
+
+- **Switching Tabs**: Click on a tab to switch to that file.
+- **Closing Tabs**: Click the `x` button on a tab to close it.
+- **Unsaved Changes**: A dot `●` will appear next to the filename if the file has unsaved changes.
+
+### Keyboard Shortcuts
+
+- `Ctrl+S`: Save the current file.
+- `Ctrl+O`: Open the file picker to select files.
+
+## For Developers
+
+### Project Structure
+
+```
+/home/nandishwar/Desktop/code-editor/
+├───index.html         # The main HTML file for the editor
+├───README.md          # This file
+├───public/
+│   ├───client-fs.js   # The core JavaScript for the editor's functionality
+│   └───style.css      # The stylesheet for the editor
+└───saved/             # A directory for saved files (if using a server, not used in client-side version)
+```
+
+### Code Overview
+
+- **`index.html`**: This file sets up the structure of the editor, including the toolbar, sidebar, and editor area. It also includes the necessary scripts and stylesheets.
+- **`public/client-fs.js`**: This is the heart of the editor. It contains the JavaScript code that handles:
+  - File system operations using the File System Access API.
+  - CodeMirror editor setup and configuration.
+  - UI interactions, such as button clicks, tab management, and sidebar actions.
+  - Language detection and syntax highlighting.
+  - Markdown preview functionality.
+- **`public/style.css`**: This file contains all the CSS rules for styling the editor, including the dark theme, layout, and responsive design.
+
+### How to Contribute
+
+Contributions are welcome! If you want to improve N-Code, you can:
+
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Make your changes and commit them with descriptive messages.
+4. Push your changes to your fork.
+5. Create a pull request to the main repository.
+
+## Browser Compatibility
+
+The File System Access API is a relatively new technology and is not yet supported by all browsers. For the best experience, please use a browser that supports this API.
+
+- **Full Support**: Chrome, Edge, Opera
+- **Partial Support**: Firefox (requires enabling a flag)
+- **No Support**: Safari
+
+In browsers that do not support the File System Access API, the editor will fall back to a legacy mode where you can open and download files, but you cannot directly save to the file system or open folders.
 
 ## License
 
