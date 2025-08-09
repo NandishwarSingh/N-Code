@@ -741,10 +741,8 @@ function closeTab(tabId, force = false) {
 
 // File Management
 async function openFolder() {
-    console.log('openFolder called');
     try {
-        const dirHandle = await clientFS.openDirectory();
-        console.log('directory handle:', dirHandle);
+        await clientFS.openDirectory();
         showStatus('✓ Folder opened successfully', 'success');
         saveFolderState(); // Save folder state
         await refreshFileExplorer();
@@ -755,9 +753,7 @@ async function openFolder() {
 }
 
 async function refreshFileExplorer() {
-    console.log('refreshFileExplorer called');
     if (!clientFS.directoryHandle) {
-        console.log('no directory handle');
         // Check if we have a saved folder state but no handle
         const folderState = loadFolderState();
         if (folderState && folderState.hasFolder) {
@@ -781,9 +777,7 @@ async function refreshFileExplorer() {
     }
     
     try {
-        console.log('listing directory');
         const items = await clientFS.listDirectory();
-        console.log('directory items:', items);
         renderFileTree(items, fileExplorer);
     } catch (error) {
         showStatus('Failed to load file tree', 'error');
@@ -814,6 +808,7 @@ function getFileIcon(item) {
 }
 
 function renderFileTree(items, container, level = 0) {
+    console.log('renderFileTree called with:', items, container);
     container.innerHTML = '';
     
     if (items.length === 0 && level === 0) {
@@ -822,6 +817,7 @@ function renderFileTree(items, container, level = 0) {
     }
     
     items.forEach(item => {
+        console.log('rendering item:', item);
         const fileItem = document.createElement('div');
         fileItem.className = `file-item ${item.type}`;
         fileItem.style.paddingLeft = `${8 + level * 16}px`;
