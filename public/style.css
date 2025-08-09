@@ -47,6 +47,22 @@ body {
     background: #005a9e;
 }
 
+.toolbar-action-button {
+    background: #007acc;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.toolbar-action-button:hover:not(:disabled) {
+    background: #005a9e;
+}
+
 .save-button:disabled, .preview-button:disabled, .open-file-button:disabled {
     background: #555;
     cursor: not-allowed;
@@ -61,11 +77,11 @@ body {
 }
 
 .open-folder-button {
-    background: #28a745;
+    background: #007acc;
 }
 
 .open-folder-button:hover:not(:disabled) {
-    background: #218838;
+    background: #005a9e;
 }
 
 .sidebar-toggle {
