@@ -69,7 +69,16 @@ body {
 }
 
 .open-file-button, .open-folder-button {
-    background: #6f42c1;
+    background: #007acc;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
 }
 
 .open-file-button:hover:not(:disabled), .open-folder-button:hover:not(:disabled) {

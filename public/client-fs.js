@@ -315,6 +315,9 @@ const refreshFilesBtn = document.getElementById('refreshFilesBtn');
 const createFileBtn = document.getElementById('createFileBtn');
 const createFolderBtn = document.getElementById('createFolderBtn');
 
+const undoBtn = document.getElementById('undoBtn');
+const redoBtn = document.getElementById('redoBtn');
+
 let isPreviewMode = false;
 let tabs = [];
 let activeTabId = null;
@@ -1194,6 +1197,18 @@ toggleSidebarBtn.addEventListener('click', toggleSidebar);
 refreshFilesBtn.addEventListener('click', refreshFileExplorer);
 createFileBtn.addEventListener('click', () => createNewFile());
 createFolderBtn.addEventListener('click', () => createNewFolder());
+
+undoBtn.addEventListener('click', () => {
+    if (editor) {
+        editor.undo();
+    }
+});
+
+redoBtn.addEventListener('click', () => {
+    if (editor) {
+        editor.redo();
+    }
+});
 
 // Hide context menu on click outside
 document.addEventListener('click', hideContextMenu);

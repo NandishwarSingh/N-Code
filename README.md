@@ -2,29 +2,18 @@
 
 N-Code is a modern, feature-rich, client-side code editor that runs entirely in your browser. It provides a clean, intuitive, and powerful environment for editing code, with support for multiple languages, syntax highlighting, and direct file system integration. This editor is designed for developers who need a quick and efficient way to work with local files without the need for a heavy IDE.
 
-## Core Features in Detail
+## Features
 
-- **Client-Side Operation**: N-Code operates completely within your browser. There is no backend server required, which means you can use it offline. All your files and settings are handled locally.
-
+- **Undo/Redo Functionality**: Easily revert or reapply changes within the code editor.
+- **Enhanced Button Aesthetics**: Improved visual styling for key toolbar buttons, including "Undo", "Redo", and "Open Folder".
+- **Client-Side Operation**: No backend required. The editor works completely within your browser. All your files and settings are handled locally.
 - **Direct File System Access**: Leveraging the File System Access API, N-Code allows you to open, edit, and save files and folders directly on your local machine. This provides a seamless workflow similar to a desktop application (requires a supported browser like Chrome or Edge).
-
-- **Multi-Language Support**: The editor includes syntax highlighting for a variety of popular languages, including:
-  - JavaScript
-  - Python
-  - HTML
-  - CSS
-  - Markdown
-  - JSON
-
+- **Multi-Language Support**: Syntax highlighting for various languages including JavaScript, Python, HTML, CSS, and Markdown.
 - **Real-time Markdown Preview**: When editing Markdown files, you can toggle a live preview panel to see the rendered output as you type.
-
-- **Tabbed Interface**: Manage multiple files efficiently with a familiar tabbed interface. Each tab shows the filename and indicates if there are unsaved changes.
-
+- **Tabbed Interface**: Open and manage multiple files in tabs. Each tab shows the filename and indicates if there are unsaved changes.
 - **File Explorer**: A sidebar provides a tree view of your opened folder, allowing you to browse, open, create, rename, and delete files and folders.
-
-- **Dark Theme**: A visually appealing dark theme is used to reduce eye strain and provide a pleasant coding experience.
-
-- **Responsive Design**: The editor is designed to be usable on a range of devices, from desktops to tablets and mobiles.
+- **Dark Theme**: A comfortable dark theme for coding.
+- **Responsive Design**: Usable on both desktop and mobile devices.
 
 ## Getting Started
 
@@ -49,6 +38,8 @@ This guide explains the various components of the N-Code editor.
 The toolbar at the top of the editor provides access to the main functionalities:
 
 - **Save File**: Saves the content of the active tab to your local file system. If the file is new, it will prompt you to choose a location.
+- **Undo**: Reverts the last change in the code editor.
+- **Redo**: Reapplies the last undone change in the code editor.
 - **Filename Input**: Displays the name of the current file. You can also rename the file by changing the name here and saving.
 - **Language Selection**: A dropdown menu to manually select the language for syntax highlighting.
 - **Toggle Preview**: When editing a Markdown file, this button appears to show or hide the live preview panel.
