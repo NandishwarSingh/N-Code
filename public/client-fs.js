@@ -741,8 +741,10 @@ function closeTab(tabId, force = false) {
 
 // File Management
 async function openFolder() {
+    console.log('openFolder called');
     try {
-        await clientFS.openDirectory();
+        const dirHandle = await clientFS.openDirectory();
+        console.log('directory handle:', dirHandle);
         showStatus('✓ Folder opened successfully', 'success');
         saveFolderState(); // Save folder state
         await refreshFileExplorer();
@@ -753,7 +755,9 @@ async function openFolder() {
 }
 
 async function refreshFileExplorer() {
+    console.log('refreshFileExplorer called');
     if (!clientFS.directoryHandle) {
+        console.log('no directory handle');
         // Check if we have a saved folder state but no handle
         const folderState = loadFolderState();
         if (folderState && folderState.hasFolder) {
@@ -777,7 +781,9 @@ async function refreshFileExplorer() {
     }
     
     try {
+        console.log('listing directory');
         const items = await clientFS.listDirectory();
+        console.log('directory items:', items);
         renderFileTree(items, fileExplorer);
     } catch (error) {
         showStatus('Failed to load file tree', 'error');
