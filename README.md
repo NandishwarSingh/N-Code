@@ -1,80 +1,43 @@
-# Code Editor
+# N-Code Editor
 
-A modern web-based code editor built with Node.js, Express, and CodeMirror 6.
+N-Code is a modern, client-side code editor that runs entirely in your browser. It provides a clean and intuitive interface for editing code, with support for multiple languages, syntax highlighting, and file system integration.
 
 ## Features
 
-- **CodeMirror 6 Integration**: Modern code editor with JavaScript syntax highlighting
-- **Full-Screen Editor**: Editor fills the entire browser window
-- **Save Functionality**: Save your code to the server with custom filenames
-- **Dark Theme**: Beautiful dark theme with syntax highlighting
-- **Keyboard Shortcuts**: Ctrl+S to save
-- **Responsive Design**: Works on desktop and mobile devices
+- **Client-Side**: No backend required. The editor works completely within your browser.
+- **File System Access**: Open, edit, and save files directly to your local file system (requires a supported browser like Chrome or Edge).
+- **Multi-Language Support**: Syntax highlighting for various languages including JavaScript, Python, HTML, CSS, and Markdown.
+- **Markdown Preview**: Real-time preview for Markdown files.
+- **Tabbed Interface**: Open and manage multiple files in tabs.
+- **File Explorer**: Browse and manage files and folders in a sidebar.
+- **Dark Theme**: A comfortable dark theme for coding.
+- **Responsive Design**: Usable on both desktop and mobile devices.
 
-## Setup
+## How to Use
 
-1. **Install Dependencies**:
-   ```bash
-   cd code-editor
-   npm install
-   ```
-
-2. **Start the Server**:
-   ```bash
-   npm start
-   ```
-   
-   Or for development with auto-restart:
-   ```bash
-   npm run dev
-   ```
-
-3. **Open in Browser**:
-   Navigate to `http://localhost:3000`
-
-## Usage
-
-- **Edit Code**: Start typing in the editor area
-- **Save Code**: Click the "Save Code" button or press Ctrl+S
-- **Custom Filename**: Enter a filename in the input field before saving
-- **Syntax Highlighting**: JavaScript syntax is automatically highlighted
-
-## Project Structure
-
-```
-code-editor/
-├── server.js          # Express server
-├── package.json       # Dependencies and scripts
-├── public/            # Static files
-│   ├── index.html     # Main HTML page
-│   └── style.css      # Styling
-├── saved/             # Saved code files (created automatically)
-└── README.md          # This file
-```
-
-## API Endpoints
-
-- `GET /` - Serves the main editor page
-- `POST /save` - Saves code content to a file
-  - Body: `{ "content": "code content", "filename": "optional-filename.js" }`
-  - Response: `{ "success": true, "message": "File saved", "filename": "actual-filename.js" }`
+1. **Open the Editor**: Simply open the `index.html` file in your web browser.
+2. **Open Files/Folders**:
+   - Click the "Open Folder" button to open a directory from your local file system.
+   - Click the "Open Files" button to open one or more files.
+3. **Editing**:
+   - Click on a file in the explorer to open it in a new tab.
+   - Edit the code in the editor.
+   - Your changes are auto-saved to the browser's local storage.
+4. **Saving**:
+   - Click the "Save File" button to save the changes to your local file.
+   - Use `Ctrl+S` as a keyboard shortcut to save.
 
 ## Technologies Used
 
-- **Backend**: Node.js, Express
-- **Frontend**: HTML5, CSS3, JavaScript (ES6 modules)
-- **Editor**: CodeMirror 6
-- **Theme**: One Dark theme
+- **HTML5, CSS3, JavaScript (ES6)**
+- **CodeMirror**: The code editor component.
+- **Marked**: A Markdown parser for the preview feature.
+- **File System Access API**: For direct interaction with the local file system.
 
-## Development
+## Screenshots
 
-To extend this editor:
-
-1. **Add Language Support**: Import additional language packages from CodeMirror
-2. **Add Themes**: Import different themes from CodeMirror
-3. **Add Features**: Extend the editor with plugins like autocomplete, linting, etc.
-4. **File Management**: Add file loading, directory browsing, etc.
+*(Add screenshots of the editor in action here)*
 
 ## License
 
-MIT License
+This project is licensed under the MIT License.
