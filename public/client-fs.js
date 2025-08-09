@@ -777,6 +777,7 @@ async function refreshFileExplorer() {
     }
     
     try {
+        hideWelcomeScreen();
         const items = await clientFS.listDirectory();
         renderFileTree(items, fileExplorer);
     } catch (error) {
@@ -808,7 +809,6 @@ function getFileIcon(item) {
 }
 
 function renderFileTree(items, container, level = 0) {
-    console.log('renderFileTree called with:', items, container);
     container.innerHTML = '';
     
     if (items.length === 0 && level === 0) {
@@ -817,7 +817,6 @@ function renderFileTree(items, container, level = 0) {
     }
     
     items.forEach(item => {
-        console.log('rendering item:', item);
         const fileItem = document.createElement('div');
         fileItem.className = `file-item ${item.type}`;
         fileItem.style.paddingLeft = `${8 + level * 16}px`;
