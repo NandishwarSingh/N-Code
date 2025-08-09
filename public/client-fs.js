@@ -346,7 +346,7 @@ function showWelcomeScreen() {
             <h2 style="color: #666; margin-bottom: 20px;">📁 No Files Open</h2>
             <p style="margin-bottom: 30px; font-size: 16px;">Open a file from the explorer to start editing</p>
             <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-                <button id="welcomeOpenFiles" style="padding: 10px 20px; background: #007acc; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">📂 Open Folder</button>
+                <button id="welcomeOpenFolder" style="padding: 10px 20px; background: #007acc; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">📂 Open Folder</button>
 
                 <button id="welcomeNewFile" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">📄 New File</button>
             </div>
@@ -371,15 +371,8 @@ function showWelcomeScreen() {
     
     // Add event listeners to welcome screen buttons
     setTimeout(() => {
-        const openFilesBtn = document.getElementById('welcomeOpenFiles');
         const openFolderBtn = document.getElementById('welcomeOpenFolder');
         const newFileBtn = document.getElementById('welcomeNewFile');
-        
-        if (openFilesBtn) {
-            openFilesBtn.addEventListener('click', () => {
-                document.getElementById('openFileBtn').click();
-            });
-        }
         
         if (openFolderBtn) {
             openFolderBtn.addEventListener('click', async () => {
