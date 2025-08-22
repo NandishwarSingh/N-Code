@@ -3,38 +3,658 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Editor - Client Side</title>
-    <link rel="stylesheet" href="public/style.css">
+    <title>AI Code Editor - Enhanced with Gemini</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    background: #1e1e1e;
+    color: #ffffff;
+}
+
+.editor-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: #2d2d2d;
+    border-bottom: 1px solid #404040;
+    flex-shrink: 0;
+    min-height: 48px;
+}
+
+.save-button, .preview-button, .open-file-button, .sidebar-toggle, .ai-button {
+    background: #007acc;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.save-button:hover:not(:disabled), .preview-button:hover:not(:disabled),
+.open-file-button:hover:not(:disabled), .sidebar-toggle:hover:not(:disabled),
+.ai-button:hover:not(:disabled) {
+    background: #005a9e;
+}
+
+.ai-button {
+    background: #ff6b35;
+    position: relative;
+}
+
+.ai-button:hover:not(:disabled) {
+    background: #e55a2b;
+}
+
+.ai-button.loading {
+    background: #666;
+    cursor: wait;
+}
+
+.ai-button.loading::after {
+    content: '';
+    width: 12px;
+    height: 12px;
+    border: 2px solid #ffffff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-left: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.toolbar-action-button {
+    background: #007acc;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.toolbar-action-button:hover:not(:disabled) {
+    background: #005a9e;
+}
+
+.save-button:disabled, .preview-button:disabled, .open-file-button:disabled, .ai-button:disabled {
+    background: #555;
+    cursor: not-allowed;
+}
+
+.open-file-button, .open-folder-button {
+    background: #007acc;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.open-file-button:hover:not(:disabled), .open-folder-button:hover:not(:disabled) {
+    background: #005a9e;
+}
+
+.open-folder-button {
+    background: #007acc;
+}
+
+.open-folder-button:hover:not(:disabled) {
+    background: #005a9e;
+}
+
+.sidebar-toggle {
+    background: #6c757d;
+    padding: 8px 12px;
+    min-width: auto;
+}
+
+.sidebar-toggle:hover {
+    background: #545b62;
+}
+
+.preview-button {
+    background: #28a745;
+}
+
+.preview-button:hover:not(:disabled) {
+    background: #218838;
+}
+
+.preview-button.active {
+    background: #dc3545;
+}
+
+.preview-button.active:hover {
+    background: #c82333;
+}
+
+.filename-input, .language-select {
+    background: #3c3c3c;
+    border: 1px solid #555;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 150px;
+}
+
+.filename-input:focus, .language-select:focus {
+    outline: none;
+    border-color: #007acc;
+    box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+}
+
+.filename-input::placeholder {
+    color: #888;
+}
+
+.language-select option {
+    background: #3c3c3c;
+    color: white;
+}
+
+.status {
+    margin-left: auto;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.status.success {
+    background: rgba(0, 128, 0, 0.2);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.status.error {
+    background: rgba(255, 0, 0, 0.2);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.status.info {
+    background: rgba(0, 122, 204, 0.2);
+    color: #2196f3;
+    border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.tab-bar {
+    display: flex;
+    background: #252526;
+    border-bottom: 1px solid #404040;
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: #2d2d30;
+    border-right: 1px solid #404040;
+    cursor: pointer;
+    min-width: 120px;
+    max-width: 200px;
+    position: relative;
+    transition: background-color 0.2s ease;
+}
+
+.tab:hover {
+    background: #37373d;
+}
+
+.tab.active {
+    background: #1e1e1e;
+    border-bottom: 2px solid #007acc;
+}
+
+.tab-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+.tab-close {
+    margin-left: 8px;
+    background: none;
+    border: none;
+    color: #cccccc;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-size: 12px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.tab-close:hover {
+    opacity: 1;
+    background: #464647;
+}
+
+.tab.unsaved .tab-name::after {
+    content: '●';
+    margin-left: 4px;
+    color: #f0f0f0;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 300px;
+    background: #252526;
+    border-right: 1px solid #404040;
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.3s ease;
+}
+
+.sidebar.hidden {
+    margin-left: -300px;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #404040;
+    background: #2d2d30;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #cccccc;
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-tabs {
+    display: flex;
+    background: #2d2d30;
+    border-bottom: 1px solid #404040;
+}
+
+.sidebar-tab {
+    flex: 1;
+    padding: 8px 16px;
+    background: #3c3c3c;
+    border-right: 1px solid #404040;
+    cursor: pointer;
+    font-size: 12px;
+    text-align: center;
+    transition: background-color 0.2s ease;
+}
+
+.sidebar-tab:last-child {
+    border-right: none;
+}
+
+.sidebar-tab:hover {
+    background: #464647;
+}
+
+.sidebar-tab.active {
+    background: #007acc;
+    color: #ffffff;
+}
+
+.sidebar-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+    display: none;
+}
+
+.sidebar-panel.active {
+    display: block;
+}
+
+.ai-panel {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.api-key-section {
+    margin-bottom: 20px;
+    padding: 12px;
+    background: rgba(255, 107, 53, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 107, 53, 0.3);
+}
+
+.api-key-section h4 {
+    margin-bottom: 8px;
+    color: #ff6b35;
+    font-size: 12px;
+}
+
+.api-key-input {
+    width: 100%;
+    padding: 8px;
+    background: #3c3c3c;
+    border: 1px solid #555;
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.api-key-input:focus {
+    outline: none;
+    border-color: #ff6b35;
+}
+
+.api-help-text {
+    font-size: 11px;
+    color: #888;
+    line-height: 1.4;
+}
+
+.ai-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.ai-action-btn {
+    background: #ff6b35;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s ease;
+}
+
+.ai-action-btn:hover:not(:disabled) {
+    background: #e55a2b;
+}
+
+.ai-action-btn:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+.ai-response {
+    flex: 1;
+    background: #2d2d2d;
+    border: 1px solid #404040;
+    border-radius: 6px;
+    padding: 12px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    min-height: 200px;
+}
+
+.file-explorer {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #cccccc;
+    transition: background-color 0.2s ease;
+    position: relative;
+}
+
+.file-item:hover {
+    background: #2a2d2e;
+}
+
+.file-item.active {
+    background: #094771;
+    color: #ffffff;
+}
+
+.file-item.directory {
+    font-weight: 500;
+}
+
+.file-item.directory.expanded > .file-icon::before {
+    content: '📂';
+}
+
+.file-item.directory.collapsed > .file-icon::before {
+    content: '📁';
+}
+
+.file-icon {
+    margin-right: 8px;
+    font-size: 12px;
+    min-width: 16px;
+    text-align: center;
+}
+
+.file-icon.js::before { content: '🟨'; }
+.file-icon.py::before { content: '🐍'; }
+.file-icon.html::before { content: '🌐'; }
+.file-icon.css::before { content: '🎨'; }
+.file-icon.json::before { content: '📋'; }
+.file-icon.md::before { content: '📝'; }
+.file-icon.txt::before { content: '📄'; }
+.file-icon.default::before { content: '📄'; }
+
+.file-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.no-folder-message {
+    padding: 20px;
+    text-align: center;
+    color: #888;
+}
+
+.editor-wrapper {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+}
+
+.editor {
+    flex: 1;
+    overflow: hidden;
+    background: #1e1e1e;
+}
+
+.ai-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.ai-modal.active {
+    display: flex;
+}
+
+.ai-modal-content {
+    background: #2d2d2d;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 600px;
+    max-height: 70vh;
+    overflow-y: auto;
+    width: 90%;
+    border: 1px solid #404040;
+}
+
+.ai-modal-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.ai-modal-title {
+    font-size: 18px;
+    margin: 0;
+    color: #ff6b35;
+}
+
+.ai-modal-close {
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 24px;
+    margin-left: auto;
+}
+
+.ai-modal-close:hover {
+    color: #fff;
+}
+
+.ai-modal-response {
+    background: #1e1e1e;
+    border: 1px solid #404040;
+    border-radius: 4px;
+    padding: 16px;
+    margin: 16px 0;
+    font-family: monospace;
+    white-space: pre-wrap;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 14px;
+}
+
+.ai-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.ai-modal-btn {
+    background: #007acc;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.ai-modal-btn:hover {
+    background: #005a9e;
+}
+
+.ai-modal-btn.secondary {
+    background: #6c757d;
+}
+
+.ai-modal-btn.secondary:hover {
+    background: #545b62;
+}
+
+.loading-text {
+    color: #888;
+    font-style: italic;
+}
+
+#code-textarea {
+    width: 100%;
+    height: 100%;
+    background: #1e1e1e;
+    color: #ffffff;
+    border: none;
+    outline: none;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    padding: 16px;
+    resize: none;
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .toolbar {
+        flex-wrap: wrap;
+        min-height: auto;
+        padding: 8px;
+    }
+
+    .sidebar {
+        width: 250px;
+    }
+}
+    </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-    <!-- Language modes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
-    <!-- JSON linting -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/lint.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/json-lint.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/lint.min.css">
-    <!-- CodeMirror Search Addons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/search.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.css">
-    <!-- CodeMirror Hint (Autocompletion) Addons -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/javascript-hint.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/python-hint.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/xml-hint.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
-    <!-- CodeMirror Keymaps -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/keymap/sublime.min.js"></script>
-    <!-- Markdown preview -->
     <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
 </head>
 <body>
@@ -52,69 +672,1745 @@
                 <option value="text/html">HTML</option>
                 <option value="css">CSS</option>
             </select>
-            <button id="previewBtn" class="preview-button" style="display: none;">Toggle Preview</button>
-            <input type="file" id="fileInput" accept=".js,.py,.md,.json,.html,.css,.txt" style="display: none;" multiple>
-            <button id="openFileBtn" class="open-file-button">Open Files</button>
-            <button id="openFolderBtn" class="open-folder-button">Open Folder</button>
-            <button id="searchBtn" class="toolbar-action-button" title="Search">Search</button>
+            <button id="aiExplainBtn" class="ai-button" title="AI Explain Code">🤖 Explain</button>
+            <button id="aiOptimizeBtn" class="ai-button" title="AI Optimize Code">⚡ Optimize</button>
             <button id="toggleSidebarBtn" class="sidebar-toggle">📁</button>
             <div class="status" id="status"></div>
         </div>
-        <div class="tab-bar" id="tabBar" style="display: none;">
-            <!-- Tabs will be dynamically added here -->
-        </div>
+
+        <div class="tab-bar" id="tabBar" style="display: none;"></div>
+
         <div class="main-content">
             <div class="sidebar" id="sidebar">
                 <div class="sidebar-header">
-                    <h3>Explorer</h3>
-                    <div class="sidebar-actions">
-                        <button id="createFileBtn" class="action-btn" title="New File">📄</button>
-                        <button id="createFolderBtn" class="action-btn" title="New Folder">📁</button>
-                        <button id="refreshFilesBtn" class="refresh-btn" title="Refresh">🔄</button>
-                    </div>
+                    <h3>Explorer & AI</h3>
                 </div>
-                <div class="file-explorer" id="fileExplorer">
-                    <div class="no-folder-message">
-                        <p>No folder opened</p>
-                        <button id="openFolderBtnSidebar" class="open-folder-button">Open Folder</button>
+                <div class="sidebar-tabs">
+                    <div class="sidebar-tab active" data-tab="files">📁 Files</div>
+                    <div class="sidebar-tab" data-tab="ai">🤖 AI</div>
+                </div>
+                <div class="sidebar-content">
+                    <div class="sidebar-panel active" id="files-panel">
+                        <div class="file-explorer" id="fileExplorer">
+                            <div class="no-folder-message">
+                                <p>No folder opened</p>
+                                <button id="openFolderBtnSidebar" class="open-folder-button">Open Folder</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sidebar-panel" id="ai-panel">
+                        <div class="ai-panel">
+                            <div class="api-key-section">
+                                <h4>🔑 Gemini API Key</h4>
+                                <input type="password" id="apiKeyInput" class="api-key-input" placeholder="Enter your Gemini API key">
+                                <div class="api-help-text">
+                                    Get your free API key from <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a>
+                                </div>
+                            </div>
+                            <div class="ai-actions">
+                                <button id="aiExplainSidebarBtn" class="ai-action-btn">🧠 Explain Code</button>
+                                <button id="aiOptimizeSidebarBtn" class="ai-action-btn">⚡ Optimize Code</button>
+                                <button id="aiDocumentBtn" class="ai-action-btn">📝 Add Documentation</button>
+                                <button id="aiTestBtn" class="ai-action-btn">🧪 Generate Tests</button>
+                                <button id="aiRefactorBtn" class="ai-action-btn">🔄 Refactor Code</button>
+                                <button id="aiFixBugsBtn" class="ai-action-btn">🐛 Find & Fix Bugs</button>
+                                <button id="aiTranslateBtn" class="ai-action-btn">🔄 Convert Language</button>
+                            </div>
+                            <div class="ai-response" id="aiResponse">
+                                💡 AI Assistant Ready!
+
+                                1. Add your Gemini API key above
+                                2. Select or write some code
+                                3. Click any AI action to get help
+
+                                Features:
+                                • Code explanation and documentation
+                                • Performance optimization suggestions
+                                • Bug detection and fixes
+                                • Test generation
+                                • Code refactoring
+                                • Language conversion
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
             <div class="editor-wrapper">
                 <div id="editor" class="editor">
-                    <textarea id="code-textarea">// Welcome to the Client-Side Code Editor!
-// This editor works entirely in your browser
+                    <textarea id="code-textarea">// AI-Enhanced Code Editor
+// This editor now includes powerful AI features powered by Google Gemini
 
-function greet(name) {
-    console.log(`Hello, ${name}!`);
-    return `Welcome to the code editor, ${name}`;
+function fibonacci(n) {
+    // This is a basic implementation - let AI optimize it!
+    if (n <= 1) return n;
+    return fibonacci(n - 1) + fibonacci(n - 2);
 }
 
-// Try editing this code
-const message = greet('Developer');
-console.log(message);
+// Try the AI features:
+// 1. Select this code and click "🤖 Explain" to understand how it works
+// 2. Click "⚡ Optimize" to improve performance
+// 3. Click "📝 Add Documentation" for better comments
+// 4. Click "🧪 Generate Tests" to create test cases
 
-// Features:
-// - Multiple language support
-// - Syntax highlighting
-// - Auto language detection
-// - JSON linting
-// - Markdown preview
-// - Multi-tab interface
-// - File operations (browser dependent)
-// - No backend required!
+const result = fibonacci(10);
+console.log(`Fibonacci of 10 is: ${result}`);
 
-// Browser Support:
-// - Chrome/Edge: Full file system access
-// - Firefox/Safari: File upload/download mode</textarea>
-            </div>
-            <div id="preview" class="preview" style="display: none;">
-                <div class="preview-content"></div>
+// More examples to try:
+function bubbleSort(arr) {
+    for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr.length - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                let temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+    return arr;
+}
+
+// Select any code and use AI features to:
+// - Get explanations in plain English
+// - Optimize for better performance
+// - Add comprehensive documentation
+// - Generate unit tests
+// - Refactor for better readability
+// - Find and fix potential bugs
+// - Convert between programming languages</textarea>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- AI Modal -->
+    <div class="ai-modal" id="aiModal">
+        <div class="ai-modal-content">
+            <div class="ai-modal-header">
+                <h3 class="ai-modal-title" id="aiModalTitle">AI Assistant</h3>
+                <button class="ai-modal-close" id="aiModalClose">&times;</button>
+            </div>
+            <div class="ai-modal-response" id="aiModalResponse"></div>
+            <div class="ai-modal-actions">
+                <button class="ai-modal-btn secondary" id="aiModalCancel">Close</button>
+                <button class="ai-modal-btn" id="aiModalApply" style="display: none;">Apply Changes</button>
+            </div>
+        </div>
     </div>
 
-    <script src="public/client-fs.js"></script>
+    <script>
+        // AI Integration with Google Gemini
+        class AIAssistant {
+            constructor() {
+                this.apiKey = localStorage.getItem('geminiApiKey') || '';
+                this.baseURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+                this.isProcessing = false;
+
+                // Load saved API key
+                if (this.apiKey) {
+                    document.getElementById('apiKeyInput').value = this.apiKey;
+                }
+            }
+
+            setApiKey(key) {
+                this.apiKey = key;
+                localStorage.setItem('geminiApiKey', key);
+            }
+
+            async generateContent(prompt, code = '') {
+                if (!this.apiKey) {
+                    throw new Error('Please enter your Gemini API key first');
+                }
+
+                if (this.isProcessing) {
+                    throw new Error('AI is already processing another request. Please wait.');
+                }
+
+                this.isProcessing = true;
+
+                try {
+                    const fullPrompt = code ? `${prompt}\n\nCode to analyze:\n\`\`\`\n${code}\n\`\`\`` : prompt;
+
+                    const response = await fetch(`${this.baseURL}?key=${this.apiKey}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: fullPrompt
+                                }]
+                            }],
+                            generationConfig: {
+                                temperature: 0.7,
+                                topK: 40,
+                                topP: 0.95,
+                                maxOutputTokens: 2048,
+                            }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error?.message || 'API request failed');
+                    }
+
+                    const data = await response.json();
+                    const result = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (!result) {
+                        throw new Error('No response generated');
+                    }
+
+                    return result;
+                } finally {
+                    this.isProcessing = false;
+                }
+            }
+
+            async explainCode(code) {
+                const prompt = "Please explain what this code does in simple terms. Break down the logic, explain any algorithms or patterns used, and mention the time/space complexity if relevant. Format your response clearly with sections.";
+                return await this.generateContent(prompt, code);
+            }
+
+            async optimizeCode(code, language = 'javascript') {
+                const prompt = `Analyze this ${language} code and suggest optimizations. Focus on:
+                1. Performance improvements
+                2. Memory efficiency
+                3. Code readability
+                4. Best practices
+
+                Provide the optimized code with explanations of changes made.`;
+                return await this.generateContent(prompt, code);
+            }
+
+            async addDocumentation(code, language = 'javascript') {
+                const prompt = `Add comprehensive documentation to this ${language} code including:
+                1. Function/class descriptions
+                2. Parameter documentation
+                3. Return value descriptions
+                4. Usage examples
+                5. JSDoc comments where appropriate
+
+                Return the fully documented code.`;
+                return await this.generateContent(prompt, code);
+            }
+
+            async generateTests(code, language = 'javascript') {
+                const prompt = `Generate comprehensive unit tests for this ${language} code. Include:
+                1. Test cases for normal operations
+                2. Edge cases
+                3. Error conditions
+                4. Mock data where needed
+
+                Use appropriate testing framework conventions.`;
+                return await this.generateContent(prompt, code);
+            }
+
+            async refactorCode(code, language = 'javascript') {
+                const prompt = `Refactor this ${language} code to improve:
+                1. Code structure and organization
+                2. Readability and maintainability
+                3. Following SOLID principles
+                4. Removing code smells
+                5. Better naming conventions
+
+                Provide the refactored code with explanations.`;
+                return await this.generateContent(prompt, code);
+            }
+
+            async findAndFixBugs(code, language = 'javascript') {
+                const prompt = `Analyze this ${language} code for potential bugs and issues:
+                1. Logic errors
+                2. Memory leaks
+                3. Security vulnerabilities
+                4. Performance bottlenecks
+                5. Type errors
+
+                Provide fixed code with explanations of issues found.`;
+                return await this.generateContent(prompt, code);
+            }
+
+            async translateCode(code, fromLanguage, toLanguage) {
+                const prompt = `Convert this ${fromLanguage} code to ${toLanguage}. Ensure:
+                1. Functionality remains the same
+                2. Follow ${toLanguage} best practices
+                3. Use appropriate ${toLanguage} libraries/frameworks
+                4. Maintain code structure where possible
+
+                Provide the converted code with explanations of key differences.`;
+                return await this.generateContent(prompt, code);
+            }
+        }
+
+        // Initialize AI Assistant
+        const aiAssistant = new AIAssistant();
+
+        // Initialize CodeMirror
+        let editor;
+        try {
+            editor = CodeMirror.fromTextArea(document.getElementById('code-textarea'), {
+                lineNumbers: true,
+                mode: 'javascript',
+                theme: 'monokai',
+                indentUnit: 4,
+                lineWrapping: true,
+                autoCloseBrackets: true,
+                matchBrackets: true,
+                foldGutter: true,
+                gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter']
+            });
+            editor.setSize('100%', '100%');
+        } catch (error) {
+            console.error('CodeMirror failed to load:', error);
+        }
+
+        // UI Elements
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const aiResponse = document.getElementById('aiResponse');
+        const aiModal = document.getElementById('aiModal');
+        const aiModalTitle = document.getElementById('aiModalTitle');
+        const aiModalResponse = document.getElementById('aiModalResponse');
+        const aiModalClose = document.getElementById('aiModalClose');
+        const aiModalCancel = document.getElementById('aiModalCancel');
+        const aiModalApply = document.getElementById('aiModalApply');
+        const languageSelect = document.getElementById('languageSelect');
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+        let isSidebarVisible = true;
+
+        // Utility Functions
+        function getSelectedCode() {
+            if (editor) {
+                const selection = editor.getSelection();
+                return selection || editor.getValue();
+            }
+            return document.getElementById('code-textarea').value;
+        }
+
+        function getCurrentLanguage() {
+            return languageSelect.value;
+        }
+
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            setTimeout(() => {
+                status.textContent = '';
+                status.className = 'status';
+            }, 3000);
+        }
+
+        function showLoading(button, originalText) {
+            button.classList.add('loading');
+            button.disabled = true;
+            button.innerHTML = `${originalText.split(' ')[0]} <span class="loading-text">Processing...</span>`;
+        }
+
+        function hideLoading(button, originalText) {
+            button.classList.remove('loading');
+            button.disabled = false;
+            button.innerHTML = originalText;
+        }
+
+        function showAIModal(title, content, showApply = false) {
+            aiModalTitle.textContent = title;
+            aiModalResponse.textContent = content;
+            aiModalApply.style.display = showApply ? 'block' : 'none';
+            aiModal.classList.add('active');
+        }
+
+        function hideAIModal() {
+            aiModal.classList.remove('active');
+        }
+
+        function updateSidebarResponse(content) {
+            aiResponse.textContent = content;
+        }
+
+        // API Key Management
+        apiKeyInput.addEventListener('input', (e) => {
+            aiAssistant.setApiKey(e.target.value.trim());
+        });
+
+        // Sidebar Tab Management
+        document.querySelectorAll('.sidebar-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabName = e.target.getAttribute('data-tab');
+
+                // Update active tab
+                document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+
+                // Update active panel
+                document.querySelectorAll('.sidebar-panel').forEach(p => p.classList.remove('active'));
+                document.getElementById(`${tabName}-panel`).classList.add('active');
+            });
+        });
+
+        // AI Action Functions
+        async function handleAIAction(actionType, title, button, originalText) {
+            const code = getSelectedCode();
+            const language = getCurrentLanguage();
+
+            if (!code.trim()) {
+                showStatus('Please select some code or write code first', 'error');
+                return;
+            }
+
+            if (!aiAssistant.apiKey) {
+                showStatus('Please enter your Gemini API key first', 'error');
+                // Switch to AI tab
+                document.querySelector('[data-tab="ai"]').click();
+                apiKeyInput.focus();
+                return;
+            }
+
+            showLoading(button, originalText);
+            updateSidebarResponse('🤖 AI is analyzing your code...');
+
+            try {
+                let result;
+
+                switch (actionType) {
+                    case 'explain':
+                        result = await aiAssistant.explainCode(code);
+                        break;
+                    case 'optimize':
+                        result = await aiAssistant.optimizeCode(code, language);
+                        break;
+                    case 'document':
+                        result = await aiAssistant.addDocumentation(code, language);
+                        break;
+                    case 'test':
+                        result = await aiAssistant.generateTests(code, language);
+                        break;
+                    case 'refactor':
+                        result = await aiAssistant.refactorCode(code, language);
+                        break;
+                    case 'bugs':
+                        result = await aiAssistant.findAndFixBugs(code, language);
+                        break;
+                    case 'translate':
+                        const targetLang = prompt('Convert to which language? (python, java, c++, etc.)');
+                        if (!targetLang) return;
+                        result = await aiAssistant.translateCode(code, language, targetLang);
+                        break;
+                    default:
+                        throw new Error('Unknown action type');
+                }
+
+                updateSidebarResponse(result);
+                showAIModal(title, result, actionType !== 'explain');
+                showStatus(`✨ ${title} completed!`, 'success');
+
+            } catch (error) {
+                const errorMsg = `❌ Error: ${error.message}`;
+                updateSidebarResponse(errorMsg);
+                showStatus(error.message, 'error');
+                console.error('AI Error:', error);
+            } finally {
+                hideLoading(button, originalText);
+            }
+        }
+
+        // AI Button Event Listeners
+        document.getElementById('aiExplainBtn').addEventListener('click', (e) => {
+            handleAIAction('explain', '🧠 Code Explanation', e.target, '🤖 Explain');
+        });
+
+        document.getElementById('aiOptimizeBtn').addEventListener('click', (e) => {
+            handleAIAction('optimize', '⚡ Code Optimization', e.target, '⚡ Optimize');
+        });
+
+        document.getElementById('aiExplainSidebarBtn').addEventListener('click', (e) => {
+            handleAIAction('explain', '🧠 Code Explanation', e.target, '🧠 Explain Code');
+        });
+
+        document.getElementById('aiOptimizeSidebarBtn').addEventListener('click', (e) => {
+            handleAIAction('optimize', '⚡ Code Optimization', e.target, '⚡ Optimize Code');
+        });
+
+        document.getElementById('aiDocumentBtn').addEventListener('click', (e) => {
+            handleAIAction('document', '📝 Code Documentation', e.target, '📝 Add Documentation');
+        });
+
+        document.getElementById('aiTestBtn').addEventListener('click', (e) => {
+            handleAIAction('test', '🧪 Test Generation', e.target, '🧪 Generate Tests');
+        });
+
+        document.getElementById('aiRefactorBtn').addEventListener('click', (e) => {
+            handleAIAction('refactor', '🔄 Code Refactoring', e.target, '🔄 Refactor Code');
+        });
+
+        document.getElementById('aiFixBugsBtn').addEventListener('click', (e) => {
+            handleAIAction('bugs', '🐛 Bug Analysis', e.target, '🐛 Find & Fix Bugs');
+        });
+
+        document.getElementById('aiTranslateBtn').addEventListener('click', (e) => {
+            handleAIAction('translate', '🔄 Language Conversion', e.target, '🔄 Convert Language');
+        });
+
+        // Modal Event Listeners
+        aiModalClose.addEventListener('click', hideAIModal);
+        aiModalCancel.addEventListener('click', hideAIModal);
+
+        aiModalApply.addEventListener('click', () => {
+            const content = aiModalResponse.textContent;
+
+            // Extract code blocks from the response
+            const codeBlockRegex = /```[\s\S]*?\n([\s\S]*?)```/g;
+            let match = codeBlockRegex.exec(content);
+
+            if (match && match[1]) {
+                // Apply the first code block found
+                const newCode = match[1].trim();
+                if (editor) {
+                    editor.setValue(newCode);
+                } else {
+                    document.getElementById('code-textarea').value = newCode;
+                }
+                showStatus('✅ Code applied successfully!', 'success');
+            } else {
+                // If no code block, apply entire response (for simple cases)
+                if (editor) {
+                    editor.setValue(content);
+                } else {
+                    document.getElementById('code-textarea').value = content;
+                }
+                showStatus('✅ Content applied successfully!', 'success');
+            }
+
+            hideAIModal();
+        });
+
+        // Close modal on outside click
+        aiModal.addEventListener('click', (e) => {
+            if (e.target === aiModal) {
+                hideAIModal();
+            }
+        });
+
+        // Sidebar Toggle
+        toggleSidebarBtn.addEventListener('click', () => {
+            isSidebarVisible = !isSidebarVisible;
+            sidebar.classList.toggle('hidden', !isSidebarVisible);
+            toggleSidebarBtn.textContent = isSidebarVisible ? '📁' : '📂';
+        });
+
+        // Language Selection
+        languageSelect.addEventListener('change', (e) => {
+            const language = e.target.value;
+            if (editor) {
+                let mode;
+                switch (language) {
+                    case 'python': mode = 'python'; break;
+                    case 'application/json': mode = 'application/json'; break;
+                    case 'text/html': mode = 'htmlmixed'; break;
+                    case 'css': mode = 'css'; break;
+                    case 'markdown': mode = 'markdown'; break;
+                    default: mode = 'javascript';
+                }
+                editor.setOption('mode', mode);
+            }
+        });
+
+        // Basic Editor Functions
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const content = editor ? editor.getValue() : document.getElementById('code-textarea').value;
+            const filename = document.getElementById('filename').value || 'code.js';
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showStatus('💾 File downloaded!', 'success');
+        });
+
+        document.getElementById('undoBtn').addEventListener('click', () => {
+            if (editor) editor.undo();
+        });
+
+        document.getElementById('redoBtn').addEventListener('click', () => {
+            if (editor) editor.redo();
+        });
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+Shift+E for explain
+            if (e.ctrlKey && e.shiftKey && e.key === 'E') {
+                e.preventDefault();
+                document.getElementById('aiExplainBtn').click();
+            }
+
+            // Ctrl+Shift+O for optimize
+            if (e.ctrlKey && e.shiftKey && e.key === 'O') {
+                e.preventDefault();
+                document.getElementById('aiOptimizeBtn').click();
+            }
+
+            // Ctrl+S for save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                document.getElementById('saveBtn').click();
+            }
+        });
+
+        // Auto-save content to localStorage
+        function autoSave() {
+            const content = editor ? editor.getValue() : document.getElementById('code-textarea').value;
+            localStorage.setItem('editorContent', content);
+        }
+
+        // Load saved content
+        function loadSavedContent() {
+            const savedContent = localStorage.getItem('editorContent');
+            if (savedContent) {
+                if (editor) {
+                    editor.setValue(savedContent);
+                } else {
+                    document.getElementById('code-textarea').value = savedContent;
+                }
+            }
+        }
+
+        // Setup auto-save
+        if (editor) {
+            editor.on('change', () => {
+                clearTimeout(window.autoSaveTimeout);
+                window.autoSaveTimeout = setTimeout(autoSave, 1000);
+            });
+        } else {
+            document.getElementById('code-textarea').addEventListener('input', () => {
+                clearTimeout(window.autoSaveTimeout);
+                window.autoSaveTimeout = setTimeout(autoSave, 1000);
+            });
+        }
+
+        // ==================== CLIENT FILE SYSTEM INTEGRATION ====================
+
+        // Client-side File System Manager using File System Access API
+        class ClientFileSystem {
+            constructor() {
+                this.directoryHandle = null;
+                this.fileHandles = new Map(); // path -> fileHandle
+                this.isSupported = 'showDirectoryPicker' in window;
+            }
+
+            async openDirectory() {
+                if (!this.isSupported) {
+                    throw new Error('File System Access API not supported in this browser');
+                }
+
+                try {
+                    this.directoryHandle = await window.showDirectoryPicker();
+                    return this.directoryHandle;
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        throw new Error('Directory selection cancelled');
+                    }
+                    throw error;
+                }
+            }
+
+            async listDirectory(dirHandle = this.directoryHandle, path = '') {
+                if (!dirHandle) return [];
+
+                const items = [];
+                try {
+                    for await (const [name, handle] of dirHandle.entries()) {
+                        const itemPath = path ? `${path}/${name}` : name;
+                        const item = {
+                            name,
+                            path: itemPath,
+                            type: handle.kind,
+                            handle
+                        };
+
+                        if (handle.kind === 'file') {
+                            item.extension = this.getFileExtension(name);
+                        }
+
+                        items.push(item);
+                    }
+                } catch (error) {
+                    console.error('Error listing directory:', error);
+                }
+
+                // Sort: directories first, then files
+                return items.sort((a, b) => {
+                    if (a.type !== b.type) {
+                        return a.type === 'directory' ? -1 : 1;
+                    }
+                    return a.name.localeCompare(b.name);
+                });
+            }
+
+            async readFile(fileHandle) {
+                try {
+                    const file = await fileHandle.getFile();
+                    return await file.text();
+                } catch (error) {
+                    console.error('Error reading file:', error);
+                    throw error;
+                }
+            }
+
+            async writeFile(fileHandle, content) {
+                try {
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(content);
+                    await writable.close();
+                } catch (error) {
+                    console.error('Error writing file:', error);
+                    throw error;
+                }
+            }
+
+            async createFile(dirHandle, fileName, content = '') {
+                try {
+                    const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+                    await this.writeFile(fileHandle, content);
+                    return fileHandle;
+                } catch (error) {
+                    console.error('Error creating file:', error);
+                    throw error;
+                }
+            }
+
+            async createDirectory(dirHandle, folderName) {
+                try {
+                    return await dirHandle.getDirectoryHandle(folderName, { create: true });
+                } catch (error) {
+                    console.error('Error creating directory:', error);
+                    throw error;
+                }
+            }
+
+            async deleteEntry(dirHandle, entryName) {
+                try {
+                    const permission = await dirHandle.queryPermission({ mode: 'readwrite' });
+                    if (permission !== 'granted') {
+                        const requestPermission = await dirHandle.requestPermission({ mode: 'readwrite' });
+                        if (requestPermission !== 'granted') {
+                            throw new Error('Write permission denied');
+                        }
+                    }
+
+                    await dirHandle.removeEntry(entryName, { recursive: true });
+                } catch (error) {
+                    console.error('Error deleting entry:', error);
+                    if (error.name === 'NotFoundError') {
+                        throw new Error(`File or folder "${entryName}" not found`);
+                    } else if (error.name === 'NotAllowedError') {
+                        throw new Error('Permission denied - cannot delete file');
+                    } else if (error.name === 'InvalidModificationError') {
+                        throw new Error('Cannot delete - file may be in use');
+                    }
+                    throw error;
+                }
+            }
+
+            async saveFileAs(content, suggestedName = 'untitled.txt') {
+                if (!this.isSupported) {
+                    this.downloadFile(content, suggestedName);
+                    return;
+                }
+
+                try {
+                    const fileHandle = await window.showSaveFilePicker({
+                        suggestedName,
+                        types: this.getFileTypes()
+                    });
+                    await this.writeFile(fileHandle, content);
+                    return fileHandle;
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        throw new Error('Save cancelled');
+                    }
+                    throw error;
+                }
+            }
+
+            async openFiles() {
+                if (!this.isSupported) {
+                    throw new Error('File System Access API not supported');
+                }
+
+                try {
+                    const fileHandles = await window.showOpenFilePicker({
+                        multiple: true,
+                        types: this.getFileTypes()
+                    });
+                    return fileHandles;
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        throw new Error('File selection cancelled');
+                    }
+                    throw error;
+                }
+            }
+
+            downloadFile(content, filename) {
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            getFileExtension(filename) {
+                return filename.includes('.') ? '.' + filename.split('.').pop().toLowerCase() : null;
+            }
+
+            getFileTypes() {
+                return [
+                    {
+                        description: 'Text files',
+                        accept: {
+                            'text/plain': ['.txt', '.md', '.js', '.py', '.html', '.css', '.json']
+                        }
+                    }
+                ];
+            }
+        }
+
+        // Initialize the file system manager
+        const clientFS = new ClientFileSystem();
+
+        // Folder state persistence
+        let expandedFolders = new Set();
+
+        function saveFolderState() {
+            if (!clientFS.directoryHandle) return;
+
+            const folderState = {
+                hasFolder: true,
+                expandedFolders: Array.from(expandedFolders),
+                timestamp: Date.now(),
+                folderName: clientFS.directoryHandle.name || 'Unknown Folder'
+            };
+
+            localStorage.setItem('editorFolderState', JSON.stringify(folderState));
+        }
+
+        function loadFolderState() {
+            try {
+                const saved = localStorage.getItem('editorFolderState');
+                if (saved) {
+                    const folderState = JSON.parse(saved);
+                    if (folderState.expandedFolders) {
+                        expandedFolders = new Set(folderState.expandedFolders);
+                    }
+                    return folderState;
+                }
+            } catch (error) {
+                console.error('Error loading folder state:', error);
+            }
+            return null;
+        }
+
+        function clearFolderState() {
+            localStorage.removeItem('editorFolderState');
+            expandedFolders.clear();
+        }
+
+        // Tab Management
+        let tabs = [];
+        let activeTabId = null;
+        let tabCounter = 0;
+        const tabBar = document.getElementById('tabBar');
+        const filenameInput = document.getElementById('filename');
+
+        function createTab(filename, content, language = 'javascript', fileHandle = null) {
+            const tabId = ++tabCounter;
+            const tab = {
+                id: tabId,
+                filename: filename || `untitled-${tabId}.js`,
+                content: content || '',
+                language: language,
+                saved: !content,
+                originalContent: content || '',
+                fileHandle: fileHandle
+            };
+
+            tabs.push(tab);
+            hideWelcomeScreen();
+            renderTabs();
+            switchToTab(tabId);
+            return tab;
+        }
+
+        function renderTabs() {
+            if (tabs.length === 0) {
+                tabBar.style.display = 'none';
+                showWelcomeScreen();
+                return;
+            }
+
+            tabBar.style.display = 'flex';
+            tabBar.innerHTML = '';
+            hideWelcomeScreen();
+
+            tabs.forEach(tab => {
+                const tabElement = document.createElement('div');
+                tabElement.className = `tab ${tab.id === activeTabId ? 'active' : ''} ${!tab.saved ? 'unsaved' : ''}`;
+                tabElement.innerHTML = `
+                    <span class="tab-name">${tab.filename}</span>
+                    <button class="tab-close" onclick="closeTab(${tab.id})" title="Close">×</button>
+                `;
+                tabElement.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('tab-close')) {
+                        switchToTab(tab.id);
+                    }
+                });
+                tabBar.appendChild(tabElement);
+            });
+        }
+
+        function switchToTab(tabId) {
+            if (activeTabId) {
+                const currentTab = tabs.find(t => t.id === activeTabId);
+                if (currentTab) {
+                    currentTab.content = editor ? editor.getValue() : document.getElementById('code-textarea').value;
+                    currentTab.language = languageSelect.value;
+                    currentTab.saved = currentTab.content === currentTab.originalContent;
+                }
+            }
+
+            const tab = tabs.find(t => t.id === tabId);
+            if (!tab) return;
+
+            activeTabId = tabId;
+
+            if (editor) {
+                editor.setValue(tab.content);
+            } else {
+                document.getElementById('code-textarea').value = tab.content;
+            }
+
+            filenameInput.value = tab.filename;
+            languageSelect.value = tab.language;
+            languageSelect.dispatchEvent(new Event('change'));
+
+            renderTabs();
+        }
+
+        window.closeTab = function(tabId, force = false) {
+            const tab = tabs.find(t => t.id === tabId);
+            if (!tab) return;
+
+            if (!tab.saved && !force) {
+                const shouldClose = confirm(`${tab.filename} has unsaved changes. Close anyway?`);
+                if (!shouldClose) return;
+            }
+
+            tabs = tabs.filter(t => t.id !== tabId);
+
+            if (activeTabId === tabId) {
+                if (tabs.length > 0) {
+                    switchToTab(tabs[tabs.length - 1].id);
+                } else {
+                    activeTabId = null;
+                }
+            }
+
+            renderTabs();
+        };
+
+        function showWelcomeScreen() {
+            const welcomeContent = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: #888; font-family: Arial, sans-serif;">
+                    <h2 style="color: #666; margin-bottom: 20px;">📁 AI-Enhanced Code Editor</h2>
+                    <p style="margin-bottom: 30px; font-size: 16px;">Open files or create new ones to start coding with AI assistance</p>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                        <button id="welcomeOpenFolder" style="padding: 10px 20px; background: #007acc; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">📂 Open Folder</button>
+                        <button id="welcomeOpenFiles" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">📄 Open Files</button>
+                        <button id="welcomeNewFile" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">✨ New File</button>
+                    </div>
+                </div>
+            `;
+
+            if (editor && editor.getWrapperElement) {
+                editor.getWrapperElement().style.display = 'none';
+            } else {
+                document.getElementById('code-textarea').style.display = 'none';
+            }
+
+            let welcomeDiv = document.getElementById('welcome-screen');
+            if (!welcomeDiv) {
+                welcomeDiv = document.createElement('div');
+                welcomeDiv.id = 'welcome-screen';
+                welcomeDiv.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #1e1e1e; z-index: 10;';
+                document.querySelector('.editor-wrapper').appendChild(welcomeDiv);
+            }
+            welcomeDiv.innerHTML = welcomeContent;
+            welcomeDiv.style.display = 'block';
+
+            setTimeout(() => {
+                const openFolderBtn = document.getElementById('welcomeOpenFolder');
+                const openFilesBtn = document.getElementById('welcomeOpenFiles');
+                const newFileBtn = document.getElementById('welcomeNewFile');
+
+                if (openFolderBtn) {
+                    openFolderBtn.addEventListener('click', openFolder);
+                }
+
+                if (openFilesBtn) {
+                    openFilesBtn.addEventListener('click', openFiles);
+                }
+
+                if (newFileBtn) {
+                    newFileBtn.addEventListener('click', createNewFileFromWelcome);
+                }
+            }, 10);
+        }
+
+        function hideWelcomeScreen() {
+            const welcomeDiv = document.getElementById('welcome-screen');
+            if (welcomeDiv) {
+                welcomeDiv.style.display = 'none';
+            }
+
+            if (editor && editor.getWrapperElement) {
+                editor.getWrapperElement().style.display = 'block';
+            } else {
+                document.getElementById('code-textarea').style.display = 'block';
+            }
+        }
+
+        function createNewFileFromWelcome() {
+            const filename = prompt('Enter filename (with extension):') || 'untitled.js';
+            const language = detectLanguageFromFilename(filename);
+            createTab(filename, '', language);
+        }
+
+        function detectLanguageFromFilename(filename) {
+            const ext = '.' + filename.split('.').pop().toLowerCase();
+            const languageConfigs = {
+                'javascript': { ext: ['.js', '.jsx'] },
+                'python': { ext: ['.py'] },
+                'markdown': { ext: ['.md', '.markdown'] },
+                'application/json': { ext: ['.json'] },
+                'text/html': { ext: ['.html', '.htm'] },
+                'css': { ext: ['.css'] }
+            };
+
+            for (const [lang, config] of Object.entries(languageConfigs)) {
+                if (config.ext && config.ext.includes(ext)) {
+                    return lang;
+                }
+            }
+            return 'javascript';
+        }
+
+        // File operations
+        async function openFolder() {
+            try {
+                await clientFS.openDirectory();
+                showStatus('✓ Folder opened successfully', 'success');
+                saveFolderState();
+                await refreshFileExplorer();
+            } catch (error) {
+                showStatus(`✗ ${error.message}`, 'error');
+                console.error('Open folder error:', error);
+            }
+        }
+
+        async function openFiles() {
+            if (clientFS.isSupported) {
+                try {
+                    const fileHandles = await clientFS.openFiles();
+                    for (const fileHandle of fileHandles) {
+                        const file = await fileHandle.getFile();
+                        const content = await file.text();
+                        const language = detectLanguageFromFilename(file.name);
+                        createTab(file.name, content, language, fileHandle);
+                    }
+                    showStatus(`✓ Opened ${fileHandles.length} file(s)`, 'success');
+                } catch (error) {
+                    showStatus(`✗ ${error.message}`, 'error');
+                }
+            } else {
+                fileInput.click();
+            }
+        }
+
+        async function refreshFileExplorer() {
+            const fileExplorer = document.getElementById('fileExplorer');
+
+            if (!clientFS.directoryHandle) {
+                const folderState = loadFolderState();
+                if (folderState && folderState.hasFolder) {
+                    fileExplorer.innerHTML = `
+                        <div class="no-folder-message">
+                            <p>📁 Previous folder: ${folderState.folderName}</p>
+                            <p>Folder access lost after refresh</p>
+                            <button id="openFolderBtnSidebar2" class="open-folder-button">Reopen Folder</button>
+                        </div>
+                    `;
+                } else {
+                    fileExplorer.innerHTML = `
+                        <div class="no-folder-message">
+                            <p>No folder opened</p>
+                            <button id="openFolderBtnSidebar2" class="open-folder-button">Open Folder</button>
+                        </div>
+                    `;
+                }
+                document.getElementById('openFolderBtnSidebar2').addEventListener('click', openFolder);
+                return;
+            }
+
+            try {
+                hideWelcomeScreen();
+                const items = await clientFS.listDirectory();
+                renderFileTree(items, fileExplorer);
+            } catch (error) {
+                showStatus('Failed to load file tree', 'error');
+                console.error('Refresh error:', error);
+                clientFS.directoryHandle = null;
+                await refreshFileExplorer();
+            }
+        }
+
+        function renderFileTree(items, container, level = 0) {
+            container.innerHTML = '';
+
+            if (items.length === 0 && level === 0) {
+                container.innerHTML = '<div class="file-item">No files found</div>';
+                return;
+            }
+
+            items.forEach(item => {
+                const fileItem = document.createElement('div');
+                fileItem.className = `file-item ${item.type}`;
+                fileItem.style.paddingLeft = `${8 + level * 16}px`;
+
+                if (item.type === 'directory') {
+                    const isExpanded = expandedFolders.has(item.path);
+                    fileItem.classList.add(isExpanded ? 'expanded' : 'collapsed');
+                }
+
+                const iconClass = getFileIcon(item);
+                fileItem.innerHTML = `
+                    <span class="${iconClass}"></span>
+                    <span class="file-name">${item.name}</span>
+                `;
+
+                if (item.type === 'directory') {
+                    fileItem.addEventListener('click', () => toggleFolder(item, fileItem));
+                } else {
+                    fileItem.addEventListener('click', () => loadFile(item));
+                }
+
+                fileItem.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    showContextMenu(e, item);
+                });
+
+                container.appendChild(fileItem);
+
+                if (item.type === 'directory') {
+                    const childrenContainer = document.createElement('div');
+                    childrenContainer.className = 'file-children';
+                    if (!expandedFolders.has(item.path)) {
+                        childrenContainer.style.display = 'none';
+                    }
+                    container.appendChild(childrenContainer);
+                }
+            });
+        }
+
+        function getFileIcon(item) {
+            if (item.type === 'directory') {
+                return 'file-icon';
+            }
+
+            const ext = item.extension?.substring(1) || 'default';
+            const iconMap = {
+                'js': 'js', 'jsx': 'js',
+                'py': 'py',
+                'html': 'html', 'htm': 'html',
+                'css': 'css',
+                'json': 'json',
+                'md': 'md', 'markdown': 'md',
+                'txt': 'txt'
+            };
+
+            return `file-icon ${iconMap[ext] || 'default'}`;
+        }
+
+        async function toggleFolder(item, folderElement) {
+            const isExpanded = expandedFolders.has(item.path);
+            const childrenContainer = folderElement.nextElementSibling;
+
+            if (isExpanded) {
+                expandedFolders.delete(item.path);
+                folderElement.classList.remove('expanded');
+                folderElement.classList.add('collapsed');
+                childrenContainer.style.display = 'none';
+                saveFolderState();
+            } else {
+                expandedFolders.add(item.path);
+                folderElement.classList.remove('collapsed');
+                folderElement.classList.add('expanded');
+                childrenContainer.style.display = 'block';
+                saveFolderState();
+
+                if (childrenContainer.children.length === 0) {
+                    try {
+                        const children = await clientFS.listDirectory(item.handle, item.path);
+                        renderFileTree(children, childrenContainer, item.path.split('/').length);
+                    } catch (error) {
+                        showStatus('Failed to load folder contents', 'error');
+                        console.error('Toggle folder error:', error);
+                    }
+                }
+            }
+        }
+
+        async function loadFile(item) {
+            try {
+                const content = await clientFS.readFile(item.handle);
+                const language = detectLanguageFromFilename(item.name);
+                createTab(item.name, content, language, item.handle);
+                showStatus(`✓ Loaded ${item.name}`, 'success');
+            } catch (error) {
+                showStatus(`✗ Failed to load ${item.name}`, 'error');
+                console.error('Load file error:', error);
+            }
+        }
+
+        // Context Menu
+        let contextMenu = null;
+
+        function showContextMenu(event, item) {
+            hideContextMenu();
+
+            if (!clientFS.isSupported || !clientFS.directoryHandle) return;
+
+            contextMenu = document.createElement('div');
+            contextMenu.className = 'context-menu';
+            contextMenu.style.cssText = `
+                position: fixed;
+                background: #2d2d30;
+                border: 1px solid #404040;
+                border-radius: 4px;
+                padding: 4px 0;
+                z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                left: ${event.pageX}px;
+                top: ${event.pageY}px;
+            `;
+
+            const menuItems = [
+                { label: 'New File', action: () => createNewFile(item.type === 'directory' ? item.handle : clientFS.directoryHandle) },
+                { label: 'New Folder', action: () => createNewFolder(item.type === 'directory' ? item.handle : clientFS.directoryHandle) },
+                { separator: true },
+                { label: 'Delete', action: () => deleteItem(item) }
+            ];
+
+            menuItems.forEach(menuItem => {
+                if (menuItem.separator) {
+                    const separator = document.createElement('div');
+                    separator.style.cssText = 'height: 1px; background: #404040; margin: 4px 0;';
+                    contextMenu.appendChild(separator);
+                } else {
+                    const menuElement = document.createElement('div');
+                    menuElement.style.cssText = `
+                        padding: 8px 16px;
+                        cursor: pointer;
+                        font-size: 13px;
+                        color: #cccccc;
+                        transition: background-color 0.2s ease;
+                    `;
+                    menuElement.textContent = menuItem.label;
+                    menuElement.addEventListener('click', () => {
+                        menuItem.action();
+                        hideContextMenu();
+                    });
+                    menuElement.addEventListener('mouseenter', () => {
+                        menuElement.style.background = '#464647';
+                    });
+                    menuElement.addEventListener('mouseleave', () => {
+                        menuElement.style.background = 'transparent';
+                    });
+                    contextMenu.appendChild(menuElement);
+                }
+            });
+
+            document.body.appendChild(contextMenu);
+        }
+
+        function hideContextMenu() {
+            if (contextMenu) {
+                contextMenu.remove();
+                contextMenu = null;
+            }
+        }
+
+        async function createNewFile(dirHandle = clientFS.directoryHandle) {
+            if (!dirHandle) {
+                showStatus('No folder opened', 'error');
+                return;
+            }
+
+            const name = prompt('Enter file name:');
+            if (!name) return;
+
+            try {
+                const fileHandle = await clientFS.createFile(dirHandle, name);
+                showStatus(`✓ Created ${name}`, 'success');
+                await refreshFileExplorer();
+
+                const language = detectLanguageFromFilename(name);
+                createTab(name, '', language, fileHandle);
+            } catch (error) {
+                showStatus(`✗ Failed to create file: ${error.message}`, 'error');
+                console.error('Create file error:', error);
+            }
+        }
+
+        async function createNewFolder(dirHandle = clientFS.directoryHandle) {
+            if (!dirHandle) {
+                showStatus('No folder opened', 'error');
+                return;
+            }
+
+            const name = prompt('Enter folder name:');
+            if (!name) return;
+
+            try {
+                await clientFS.createDirectory(dirHandle, name);
+                showStatus(`✓ Created folder ${name}`, 'success');
+                await refreshFileExplorer();
+            } catch (error) {
+                showStatus(`✗ Failed to create folder: ${error.message}`, 'error');
+                console.error('Create folder error:', error);
+            }
+        }
+
+        async function deleteItem(item) {
+            if (!confirm(`Are you sure you want to delete "${item.name}"?`)) return;
+
+            try {
+                if (!clientFS.directoryHandle) {
+                    showStatus('✗ No folder opened', 'error');
+                    return;
+                }
+
+                const openTab = tabs.find(t => t.fileHandle === item.handle);
+                if (openTab) {
+                    closeTab(openTab.id, true);
+                }
+
+                await clientFS.deleteEntry(clientFS.directoryHandle, item.name);
+                showStatus(`✓ Deleted ${item.name}`, 'success');
+                await refreshFileExplorer();
+                saveFolderState();
+
+            } catch (error) {
+                console.error('Delete error:', error);
+                showStatus(`✗ Failed to delete: ${error.message}`, 'error');
+            }
+        }
+
+        // Enhanced Save Functionality
+        async function saveAllFiles() {
+            if (!clientFS.isSupported) {
+                // Fallback mode
+                const content = editor ? editor.getValue() : document.getElementById('code-textarea').value;
+                const filename = filenameInput.value.trim() || 'code.js';
+                clientFS.downloadFile(content, filename);
+                showStatus(`✓ Downloaded ${filename}`, 'success');
+                return;
+            }
+
+            let savedCount = 0;
+            let errorCount = 0;
+
+            if (activeTabId) {
+                const currentTab = tabs.find(t => t.id === activeTabId);
+                if (currentTab) {
+                    currentTab.content = editor ? editor.getValue() : document.getElementById('code-textarea').value;
+                    const newFilename = filenameInput.value.trim();
+                    if (newFilename && newFilename !== currentTab.filename) {
+                        currentTab.filename = newFilename;
+                        if (currentTab.fileHandle) {
+                            currentTab.fileHandle = null;
+                        }
+                    }
+                }
+            }
+
+            for (const tab of tabs) {
+                try {
+                    if (tab.fileHandle) {
+                        await clientFS.writeFile(tab.fileHandle, tab.content);
+                        tab.originalContent = tab.content;
+                        tab.saved = true;
+                        savedCount++;
+                    } else if (tab.content.trim()) {
+                        if (clientFS.directoryHandle) {
+                            const fileHandle = await clientFS.createFile(clientFS.directoryHandle, tab.filename, tab.content);
+                            tab.fileHandle = fileHandle;
+                            tab.originalContent = tab.content;
+                            tab.saved = true;
+                            savedCount++;
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error saving ${tab.filename}:`, error);
+                    errorCount++;
+                }
+            }
+
+            renderTabs();
+
+            if (savedCount > 0) {
+                showStatus(`✓ Saved ${savedCount} file(s)${errorCount > 0 ? `, ${errorCount} failed` : ''}`, 'success');
+                saveFolderState();
+                await refreshFileExplorer();
+            } else if (errorCount > 0) {
+                showStatus(`✗ Failed to save ${errorCount} file(s)`, 'error');
+            } else {
+                showStatus('No files to save', 'info');
+            }
+        }
+
+        // Auto-save functionality
+        function autoSave() {
+            const content = editor ? editor.getValue() : document.getElementById('code-textarea').value;
+            const filename = filenameInput.value.trim() || 'auto-save.js';
+            const language = languageSelect.value;
+            localStorage.setItem('editorContent', content);
+            localStorage.setItem('editorFilename', filename);
+            localStorage.setItem('editorLanguage', language);
+        }
+
+        async function autoSaveToFileSystem() {
+            if (!activeTabId) return;
+
+            const currentTab = tabs.find(t => t.id === activeTabId);
+            if (!currentTab) return;
+
+            const content = editor ? editor.getValue() : document.getElementById('code-textarea').value;
+            const filename = filenameInput.value.trim() || currentTab.filename;
+
+            currentTab.content = content;
+            if (filename !== currentTab.filename) {
+                currentTab.filename = filename;
+                if (currentTab.fileHandle) {
+                    currentTab.fileHandle = null;
+                }
+            }
+
+            try {
+                if (clientFS.isSupported && currentTab.fileHandle) {
+                    await clientFS.writeFile(currentTab.fileHandle, content);
+                    currentTab.originalContent = content;
+                    currentTab.saved = true;
+                    renderTabs();
+                    const status = document.getElementById('status');
+                    const originalText = status.textContent;
+                    const originalClass = status.className;
+                    status.textContent = `💾 Auto-saved ${filename}`;
+                    status.className = 'status success';
+                    setTimeout(() => {
+                        if (status.textContent.includes('Auto-saved')) {
+                            status.textContent = originalText;
+                            status.className = originalClass;
+                        }
+                    }, 2000);
+                } else if (!clientFS.isSupported) {
+                    autoSave();
+                    currentTab.saved = currentTab.content === currentTab.originalContent;
+                    renderTabs();
+                }
+            } catch (error) {
+                console.error('Auto-save error:', error);
+                autoSave();
+            }
+        }
+
+        const DEBOUNCE_DELAY = 1500;
+        let autoSaveTimer = null;
+
+        function debouncedAutoSave() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                autoSave();
+                autoSaveToFileSystem();
+            }, DEBOUNCE_DELAY);
+        }
+
+        // Additional UI Setup
+        document.getElementById('openFolderBtnSidebar').addEventListener('click', openFolder);
+        document.addEventListener('click', hideContextMenu);
+
+        // File input for fallback mode
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.js,.py,.html,.css,.json,.md,.txt';
+        fileInput.multiple = true;
+        fileInput.style.display = 'none';
+        document.body.appendChild(fileInput);
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+
+            if (files.length === 0) return;
+
+            showStatus(`📂 Loading ${files.length} file(s)...`, 'info');
+
+            let loadedCount = 0;
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    const language = detectLanguageFromFilename(file.name);
+                    createTab(file.name, content, language);
+
+                    loadedCount++;
+                    if (loadedCount === files.length) {
+                        showStatus(`✓ Loaded ${files.length} file(s) successfully`, 'success');
+                    }
+                };
+                reader.onerror = () => {
+                    showStatus(`✗ Failed to load ${file.name}`, 'error');
+                };
+                reader.readAsText(file);
+            });
+
+            fileInput.value = '';
+        });
+
+        // Browser Support Check
+        if (!clientFS.isSupported) {
+            showStatus('⚠️ File System Access API not supported. Using fallback mode.', 'info');
+            const fileExplorer = document.getElementById('fileExplorer');
+            fileExplorer.innerHTML = `
+                <div class="fallback-mode">
+                    <p>📁 Limited File Access Mode</p>
+                    <p>Your browser doesn't support direct file system access.</p>
+                    <p>You can still:</p>
+                    <p>• Open files using the "📂 Open Files" button</p>
+                    <p>• Create new files</p>
+                    <p>• Download files when saving</p>
+                    <button id="createNewFileBtn" class="open-folder-button">+ New File</button>
+                </div>
+            `;
+
+            document.getElementById('createNewFileBtn').addEventListener('click', () => {
+                const filename = prompt('Enter filename (with extension):') || 'untitled.js';
+                const language = detectLanguageFromFilename(filename);
+                createTab(filename, '', language);
+            });
+        }
+
+        // ==================== ENHANCED SAVE FUNCTIONALITY ====================
+
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                await saveAllFiles();
+            } catch (error) {
+                showStatus(`✗ ${error.message}`, 'error');
+                console.error('Save error:', error);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save File';
+            }
+        });
+
+        // ==================== FILENAME INPUT ENHANCEMENTS ====================
+
+        filenameInput.addEventListener('input', (e) => {
+            const filename = e.target.value.trim();
+            if (filename && filename.includes('.')) {
+                const detectedLang = detectLanguageFromFilename(filename);
+                if (detectedLang !== languageSelect.value) {
+                    languageSelect.value = detectedLang;
+                    languageSelect.dispatchEvent(new Event('change'));
+                    showStatus(`✓ Auto-detected ${detectedLang} from filename`, 'success');
+                }
+            }
+
+            if (activeTabId) {
+                const currentTab = tabs.find(t => t.id === activeTabId);
+                if (currentTab) {
+                    currentTab.filename = filename || 'untitled.js';
+                    renderTabs();
+                }
+            }
+
+            clearTimeout(window.filenameChangeTimeout);
+            window.filenameChangeTimeout = setTimeout(() => {
+                autoSaveToFileSystem();
+            }, 1000);
+        });
+
+        // ==================== EDITOR CHANGE HANDLERS ====================
+
+        if (editor) {
+            editor.on('change', () => {
+                if (activeTabId) {
+                    const currentTab = tabs.find(t => t.id === activeTabId);
+                    if (currentTab) {
+                        currentTab.content = editor.getValue();
+                        currentTab.saved = currentTab.content === currentTab.originalContent;
+                        renderTabs();
+                    }
+                }
+
+                debouncedAutoSave();
+            });
+        } else {
+            document.getElementById('code-textarea').addEventListener('input', () => {
+                if (activeTabId) {
+                    const currentTab = tabs.find(t => t.id === activeTabId);
+                    if (currentTab) {
+                        currentTab.content = document.getElementById('code-textarea').value;
+                        currentTab.saved = currentTab.content === currentTab.originalContent;
+                        renderTabs();
+                    }
+                }
+
+                clearTimeout(window.autoSaveTimeout);
+                window.autoSaveTimeout = setTimeout(() => {
+                    autoSave();
+                    autoSaveToFileSystem();
+                }, 1500);
+            });
+        }
+
+        // ==================== INITIALIZATION ====================
+
+        // Load saved content and state
+        function loadSavedContent() {
+            const savedContent = localStorage.getItem('editorContent');
+            const savedFilename = localStorage.getItem('editorFilename');
+            const savedLanguage = localStorage.getItem('editorLanguage') || 'javascript';
+
+            if (savedContent) {
+                createTab(
+                    savedFilename || 'welcome.js',
+                    savedContent,
+                    savedLanguage
+                );
+            }
+        }
+
+        // Initialize application
+        setTimeout(() => {
+            const folderState = loadFolderState();
+
+            // Load saved content if available
+            const savedContent = localStorage.getItem('editorContent');
+            if (savedContent || (folderState && folderState.hasFolder)) {
+                loadSavedContent();
+            }
+
+            // Initialize file explorer
+            refreshFileExplorer();
+
+            // Show folder state info if available
+            if (folderState && folderState.hasFolder) {
+                showStatus(`💾 Folder state restored (${folderState.folderName || 'Unknown'})`, 'info');
+            }
+
+            // Show welcome screen if no tabs and no folder
+            if (tabs.length === 0) {
+                showWelcomeScreen();
+            } else if (editor && editor.focus) {
+                editor.focus();
+            } else {
+                document.getElementById('code-textarea').focus();
+            }
+
+            // Show AI readiness status
+            if (aiAssistant.apiKey) {
+                setTimeout(() => showStatus('🤖 AI Assistant ready!', 'success'), 1000);
+            } else {
+                setTimeout(() => showStatus('💡 Add your Gemini API key to unlock AI features', 'info'), 1000);
+            }
+        }, 100);
+
+        // ==================== ADDITIONAL TOOLBAR BUTTONS ====================
+
+        // Add Open Files button to toolbar
+        const openFilesBtn = document.createElement('button');
+        openFilesBtn.textContent = '📂 Open Files';
+        openFilesBtn.className = 'open-file-button';
+        openFilesBtn.style.marginRight = '8px';
+        openFilesBtn.addEventListener('click', openFiles);
+
+        const openFolderBtn = document.createElement('button');
+        openFolderBtn.textContent = '📁 Open Folder';
+        openFolderBtn.className = 'open-folder-button';
+        openFolderBtn.style.marginRight = '8px';
+        openFolderBtn.addEventListener('click', openFolder);
+
+        // Insert buttons before AI buttons
+        const toolbar = document.querySelector('.toolbar');
+        const aiExplainBtn = document.getElementById('aiExplainBtn');
+        toolbar.insertBefore(openFilesBtn, aiExplainBtn);
+        toolbar.insertBefore(openFolderBtn, aiExplainBtn);
+
+        // ==================== KEYBOARD SHORTCUTS ENHANCEMENT ====================
+
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+Shift+E for explain
+            if (e.ctrlKey && e.shiftKey && e.key === 'E') {
+                e.preventDefault();
+                document.getElementById('aiExplainBtn').click();
+            }
+
+            // Ctrl+Shift+O for optimize
+            if (e.ctrlKey && e.shiftKey && e.key === 'O') {
+                e.preventDefault();
+                document.getElementById('aiOptimizeBtn').click();
+            }
+
+            // Ctrl+S for save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                document.getElementById('saveBtn').click();
+            }
+
+            // Ctrl+O for open files
+            if (e.ctrlKey && e.key === 'o') {
+                e.preventDefault();
+                openFiles();
+            }
+
+            // Ctrl+Shift+N for new file
+            if (e.ctrlKey && e.shiftKey && e.key === 'N') {
+                e.preventDefault();
+                const filename = prompt('Enter filename (with extension):') || 'untitled.js';
+                const language = detectLanguageFromFilename(filename);
+                createTab(filename, '', language);
+            }
+
+            // Ctrl+W to close tab
+            if (e.ctrlKey && e.key === 'w' && activeTabId) {
+                e.preventDefault();
+                closeTab(activeTabId);
+            }
+        });
+    </script>
 </body>
 </html>
